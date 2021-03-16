@@ -1,48 +1,69 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "expr.hpp"
+#include "string"
 
 int main(int argc, char** argv){
-    // Usage
-    if (argc != 2){
-        printf("usage: %s X\n", argv[0]);
-        printf("Parameters:\n");
-        printf("  X - The value to assign to the variable X in the equation\n");
-        exit(1);
-    }
+    // Example input arrays
+    int inputs[3][3] = {
+        {3,29,50},
+        {-2,20,62},
+        {0,12,47},
+    };
 
-    const int l = -5;
-    const int u = 5;
+    // Output arrays: expected and actual
+    const int expected[3] = {636,530,220};
+    int outputs[3];
+
+    // Variable names (for printing)
+    const char* varNames[3] = {"x", "y", "z"};
+
+    // Variable bounds
+    const int x_l = -5, x_u = 5;
+    const int y_l = 10, y_u = 30;
+    const int z_l = 45, z_u = 65;
+    int bounds[3][2] = {
+        {x_l, x_u},
+        {y_l, y_u},
+        {z_l, z_u}
+    };
 
     // Expression definitions
-    typedef VAR<BOUNDS<l, u>> X;
-    typedef ADD<X, MUL<SUB<X, LIT<2>>, SUB<X, LIT<3>>>> FORMULA1;
-    typedef DIV<X, LIT<2>> FORMULA2;
-    typedef MUL<ADD<X, LIT<3>>, ADD<X, LIT<5>>> FORMULA3;
+    typedef VAR<BOUNDS<x_l, x_u>> X;
+    typedef VAR<BOUNDS<y_l, y_u>> Y;
+    typedef VAR<BOUNDS<z_l, z_u>> Z;
+    typedef DIV<ADD<X, MUL<SUB<Y, LIT<2>>, SUB<Z, LIT<3>>>>,LIT<2>> FORMULA;
 
-    // Test cases
-    int x = atoi(argv[1]);
-    printf("x <= %d <= %d\n", l, u);
-    printf("x = %d\n\n", x);
+    // Display pre-test info
+    printf("--- INFO ---\n");
 
-    int lower = FORMULA1::bounds::LOWER;
-    int upper = FORMULA1::bounds::UPPER;
-    int val = FORMULA1::eval(x);
-    printf("f1(x) = x + (x-2) * (x-3)\n");
-    printf("%d <= f1(x) <= %d\n", lower, upper);
-    printf("f1(x) = %d\n\n", val);
+    printf("Test Expression:\n");
+    printf("- f(x,y,z) = (x + (y - 2) + (x - 3)) / 2\n");
 
-    lower = FORMULA2::bounds::LOWER;
-    upper = FORMULA2::bounds::UPPER;
-    val = FORMULA2::eval(x);
-    printf("f2(x) = x / 2\n");
-    printf("%d <= f2(x) <= %d\n", lower, upper);
-    printf("f2(x) = %d\n\n", val);
+    printf("Variable Bounds:\n");
+    for(int i=0;i<3;i++){
+        printf("- %d <= %s <= %d\n", bounds[i][0], varNames[i], bounds[i][1]);
+    }
 
-    lower = FORMULA3::bounds::LOWER;
-    upper = FORMULA3::bounds::UPPER;
-    val = FORMULA3::eval(x);
-    printf("f3(x) = (x + 3) * (x + 5)\n");
-    printf("%d <= f3(x) <= %d\n", lower, upper);
-    printf("f3(x) = %d\n", val);
+    int lower = FORMULA::bounds::LOWER;
+    int upper = FORMULA::bounds::UPPER;
+    printf("Statically evaluated expression bounds:\n");
+    printf("%d <= f(x,y,z) <= %d\n", lower, upper);
+
+    // Display test results
+    printf("--- TEST CASES ---\n");
+    for(int t=0;t<3;t++){
+        printf("Test #%d:\n", t);
+        printf("- Input Values: \n");
+        for(int i=0;i<3;i++){
+            printf(" - %s = %d\n", varNames[i], inputs[t][i]);
+        }
+        outputs[t] = FORMULA::eval(inputs[t]);
+        printf("- Expected Result: ");
+        printf("f(%d,%d,%d) = %d\n", inputs[t][0], inputs[t][1], inputs[t][2], expected[t]);
+        printf("- Actual Result: ");
+        printf("f(%d,%d,%d) = %d\n", inputs[t][0], inputs[t][1], inputs[t][2], outputs[t]);
+        printf("- Correct: ");
+        printf(outputs[t] == expected[t] ? "YES\n" : "NO\n");
+    }
 }

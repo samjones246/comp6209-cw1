@@ -1,7 +1,8 @@
 #include <stdexcept>
 #include <stdlib.h>
+#include <stdio.h>
 #include <limits>
-
+#include<string>
 // Bounds structure - Carries the upper and lower bounds of an expression
 template <int L, int U>
 struct BOUNDS {
@@ -55,7 +56,7 @@ struct DIV_BOUNDS{
 template <int N>
 struct LIT
 {
-    static constexpr int eval(int x){
+    static constexpr int eval(int* vals){
         return N;
     };
     typedef BOUNDS<N, N> bounds;
@@ -65,13 +66,39 @@ struct LIT
 template <class B>
 struct VAR
 {
-    static constexpr int eval(int x){
+    static constexpr int eval(int* vals){
+        int x = vals[0];
         if (x < B::LOWER || x > B::UPPER){
-            throw std::out_of_range("Specified value for the variable is outside of the allowed range");
+            throw std::out_of_range("Specified value " + std::to_string(x) + " for the variable is outside of the allowed range");
         }
         return x;
     };
     typedef B bounds;
+};
+
+template <class E>
+struct VARCOUNT
+{
+    enum {
+        RET = VARCOUNT<typename E::LHS>::RET + VARCOUNT<typename E::RHS>::RET
+    };
+};
+
+template <class B>
+struct VARCOUNT<VAR<B>>
+{
+    enum {
+        RET = 1
+    };
+};
+
+
+template <int N>
+struct VARCOUNT<LIT<N>>
+{
+    enum {
+        RET = 0
+    };
 };
 
 // The four basic arithmetic operations - Addition, Subtraction, Multiplication and Division
@@ -82,8 +109,18 @@ struct VAR
 template <class L, class R>
 struct ADD
 {
-    static constexpr int eval(int x){
-        return L::eval(x) + R::eval(x);
+    typedef L LHS;
+    typedef R RHS;
+    enum {
+        L_VARS = VARCOUNT<L>::RET,
+        R_VARS = VARCOUNT<R>::RET
+    };
+    static constexpr int eval(int* vals){
+        int *vals2 = vals;
+        for(int i=0;i<L_VARS;i++){
+            ++vals2;
+        }
+        return L::eval(vals) + R::eval(vals2);
     };
 
     typedef typename ADD_BOUNDS<typename L::bounds, typename R::bounds>::RET bounds;
@@ -93,8 +130,18 @@ struct ADD
 template <class L, class R>
 struct SUB
 {
-    static constexpr int eval(int x){
-        return L::eval(x) - R::eval(x);
+    typedef L LHS;
+    typedef R RHS;
+    enum {
+        L_VARS = VARCOUNT<L>::RET,
+        R_VARS = VARCOUNT<R>::RET
+    };
+    static constexpr int eval(int* vals){
+        int *vals2 = vals;
+        for(int i=0;i<L_VARS;i++){
+            ++vals2;
+        }
+        return L::eval(vals) - R::eval(vals2);
     };
 
     typedef typename SUB_BOUNDS<typename L::bounds, typename R::bounds>::RET bounds;
@@ -104,8 +151,18 @@ struct SUB
 template <class L, class R>
 struct MUL
 {
-    static constexpr int eval(int x){
-        return L::eval(x) * R::eval(x);
+    typedef L LHS;
+    typedef R RHS;
+    enum {
+        L_VARS = VARCOUNT<L>::RET,
+        R_VARS = VARCOUNT<R>::RET
+    };
+    static constexpr int eval(int* vals){
+        int *vals2 = vals;
+        for(int i=0;i<L_VARS;i++){
+            ++vals2;
+        }
+        return L::eval(vals) * R::eval(vals2);
     };
 
     typedef typename MUL_BOUNDS<typename L::bounds, typename R::bounds>::RET bounds;
@@ -117,12 +174,22 @@ struct MUL
 template <class L, class R>
 struct DIV
 {
-    static inline int eval(int x){
-        int rhs = R::eval(x);
+    typedef L LHS;
+    typedef R RHS;
+    enum {
+        L_VARS = VARCOUNT<L>::RET,
+        R_VARS = VARCOUNT<R>::RET
+    };
+    static inline int eval(int* vals){
+        int *vals2 = vals;
+        for(int i=0;i<L_VARS;i++){
+            ++vals2;
+        }
+        int rhs = R::eval(vals2);
         if (rhs == 0){
             throw std::domain_error("Division by zero is undefined");
         }
-        return L::eval(x) / rhs;
+        return L::eval(vals) / rhs;
     };
 
     typedef typename DIV_BOUNDS<typename L::bounds, typename R::bounds>::RET bounds;
