@@ -6,40 +6,6 @@
 template <int L, int U>
 struct BOUNDS {
     enum { LOWER=L, UPPER=U };
-    /*
-    BOUNDS operator+ (BOUNDS& y){
-        return BOUNDS<LOWER + y::LOWER, UPPER + y::UPPER>;
-    }
-
-    BOUNDS operator- (const BOUNDS& y){
-        return BOUNDS<LOWER - y::UPPER, UPPER - y::LOWER>;
-    }
-
-    BOUNDS operator* (const BOUNDS& y){
-        auto combs = {LOWER * y::LOWER, LOWER * y::UPPER, UPPER * y::LOWER, LOWER * y::UPPER};
-        return BOUNDS<std::min(combs), std::max(combs)>;
-    }
-
-    BOUNDS operator/ (const BOUNDS& y){
-        if(LOWER == 1 && UPPER == 1){
-            if (y::LOWER > 0 || y::UPPER < 0){
-                return BOUNDS<1/y::UPPER, 1/y::LOWER>; 
-            }
-            else if (y::LOWER != 0 && y::UPPER == 0){
-                return BOUNDS<std::numeric_limits<int>::min(), 1/y::LOWER>;
-            }
-            else if (y::LOWER == 0 && y::UPPER != 0){
-                return BOUNDS<1/y::UPPER, std::numeric_limits<int>::max()>;
-            }
-            else{
-                return BOUNDS<std::numeric_limits<int>::min(), std::numeric_limits<int>::max()>;
-            }
-        }
-        else{
-            return this * (BOUNDS<1, 1> / y);
-        }
-    }
-    */
 };
 
 template <class b1, class b2>
