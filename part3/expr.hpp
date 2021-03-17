@@ -117,6 +117,8 @@ struct VARCOUNT<LIT<N>>
 // Each template takes two parameters, L and R, which represent the left and right operands. The eval function
 // for each will call the eval functions of the operands and apply the relevant operation to their results.
 
+// Bounds for each expression are calculated using the interval arithmetic helper templates above
+
 // To make sure that each variable is assigned the correct value from the input array (e.g. the one with index
 // matching the variable's position in the expression relative to other variables), the VARCOUNT template above
 // is used to determine the number of variables on the left and right hand sides of the expression for ADD SUB MUL
