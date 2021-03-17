@@ -20,7 +20,7 @@ struct VAR
 // Each template takes two parameters, L and R, which represent the left and right operands. The eval function
 // for each will call the eval functions of the operands and apply the relevant operation to their results.
 
-// -- Addition
+// Addition
 template <class L, class R>
 struct ADD
 {
@@ -29,7 +29,7 @@ struct ADD
     };
 };
 
-// -- Subtraction
+// Subtraction
 template <class L, class R>
 struct SUB
 {
@@ -38,7 +38,7 @@ struct SUB
     };
 };
 
-// -- Multiplication
+// Multiplication
 template <class L, class R>
 struct MUL
 {
@@ -47,7 +47,7 @@ struct MUL
     };
 };
 
-// -- Division
+// Division
 // NOTE: Only supports integer division, non-integral results will be truncated. An error will be thrown on
 // division by zero.
 template <class L, class R>
