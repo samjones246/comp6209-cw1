@@ -11,6 +11,7 @@ int main(int argc, char** argv){
         exit(1);
     }
 
+    // Static upper and lower bounds for x
     const int l = -5;
     const int u = 5;
 

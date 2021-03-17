@@ -8,6 +8,8 @@ struct BOUNDS {
     enum { LOWER=L, UPPER=U };
 };
 
+// Helper templates for bounds arithmetic
+// Based on https://en.wikipedia.org/wiki/Interval_arithmetic#Interval_operators
 template <class b1, class b2>
 struct ADD_BOUNDS{
     enum {
@@ -37,11 +39,14 @@ struct MUL_BOUNDS{
 
 template <class b1, class b2>
 struct DIV_BOUNDS{
+    // There are four different cases to handle for interval division, this first expression figures out
+    // which one this is.
     static constexpr int CASE = 
         b2::LOWER > 0 || b2::UPPER < 0 ? 0 :    // Case 0: 0 not in interval
         (b2::UPPER == 0 && b2::LOWER != 0 ? 1 : // Case 1: Upper bound is 0
         (b2::LOWER == 0 && b2::UPPER != 0 ? 2 : // Case 2: Lower bound is 0
-        3));                                    // Case 3: lower < 0 < upper or lower = upper = 0
+        3));     
+    // The result is calculated using b1 * (1/b2). Here we calculate the upper and lower bounds of 1/b2                               // Case 3: lower < 0 < upper or lower = upper = 0
     static constexpr float RHS_LOWER = CASE == 0 || CASE == 2 ? 1.0f / b2::UPPER : std::numeric_limits<int>::min();
     static constexpr float RHS_UPPER = CASE == 0 || CASE == 1 ? 1.0f / b2::LOWER : std::numeric_limits<int>::max();
     enum {
@@ -61,7 +66,10 @@ struct LIT
     typedef BOUNDS<N, N> bounds;
 };
 
-// Variable (x) - The single variable of the expression, eval returns the given variable value
+// Variable (x) - The single variable of the expression, eval returns the given variable value.
+// Takes a bounds object as a template parameter to determine the range of legal values for this
+// variable, which will be factored into the calculation for the bounds of the overall expression.
+
 template <class B>
 struct VAR
 {
@@ -78,7 +86,9 @@ struct VAR
 // Each template takes two parameters, L and R, which represent the left and right operands. The eval function
 // for each will call the eval functions of the operands and apply the relevant operation to their results.
 
-// -- Addition
+// Bounds for each expression are calculated using the interval arithmetic helper templates above
+
+// Addition
 template <class L, class R>
 struct ADD
 {
@@ -89,7 +99,7 @@ struct ADD
     typedef typename ADD_BOUNDS<typename L::bounds, typename R::bounds>::RET bounds;
 };
 
-// -- Subtraction
+// Subtraction
 template <class L, class R>
 struct SUB
 {
@@ -100,7 +110,7 @@ struct SUB
     typedef typename SUB_BOUNDS<typename L::bounds, typename R::bounds>::RET bounds;
 };
 
-// -- Multiplication
+// Multiplication
 template <class L, class R>
 struct MUL
 {
@@ -111,7 +121,7 @@ struct MUL
     typedef typename MUL_BOUNDS<typename L::bounds, typename R::bounds>::RET bounds;
 };
 
-// -- Division
+// Division
 // NOTE: Only supports integer division, non-integral results will be truncated.
 // An error will be thrown on division by zero.
 template <class L, class R>
